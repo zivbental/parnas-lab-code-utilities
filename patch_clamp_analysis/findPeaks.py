@@ -43,6 +43,7 @@ def createRecordDF(files_path):
     # recordGroups.append(peakCurrent(record, 2.5))
     # df.loc[len(df)] = recordGroups
     # print(df)
+    # Check
     
     for record in listOfRecords:
         recordGroups = breakName(record)
