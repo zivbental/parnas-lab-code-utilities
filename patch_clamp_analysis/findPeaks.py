@@ -75,12 +75,19 @@ def peakCurrent(filePath, timeOfPicosprizer):
     deltaOfResponseVector = np.subtract(responseVector, ref_val)
     # Now i'll find the maximum value of absolute numbers in that vector. this is the place where I get the highest (or lowest) current in response to the ligand
     locOfPeakCurrent = np.where(np.absolute(deltaOfResponseVector) == np.max(np.absolute(deltaOfResponseVector)))
-    peakCurrent = np.subtract(responseVector[locOfPeakCurrent], ref_val)
-    # plt.plot(sweep_filtered)
-    # plt.plot(responseVector)
-    # plt.plot(locOfPeakCurrent, responseVector[locOfPeakCurrent], 'go')
-    # plt.show()
-    return peakCurrent[0]
+    # If I take the location of the peak current, I might get artifacts that result from noise. Therefore, i'll average an area of 30 sample from each side of this location and this will be my peak current value
+    windowSize = 500 # Samples from each side
+    startIndex = max(0, locOfPeakCurrent[0][0] - windowSize)
+    endIndex = min(len(responseVector), locOfPeakCurrent[0][0] + windowSize + 1)
+    averageOfResponse = np.average(responseVector[startIndex:endIndex])
+    print(averageOfResponse)
+    peakCurrent = np.subtract(averageOfResponse, ref_val)
+    plt.plot(sweep_filtered)
+    plt.plot(responseVector)
+    plt.plot(locOfPeakCurrent, averageOfResponse, 'go')
+    plt.show()
+    return peakCurrent
+
 
 
 ### Main code
