@@ -19,6 +19,22 @@ from scipy.signal import butter, lfilter
 
 ### Functions
 
+def createRecordDF(files_path):
+    listOfRecords = filter_strings_by_extension(filesPath) # List all the files in a given DF
+    df = pd.DataFrame(columns = ['Record ID', 'Protein Name', 'Dose', 'Holding potential', 'Date', 'Response (pA)'])
+    # record = listOfRecords[0]
+    # recordGroups = breakName(record)
+    # recordGroups.append(peakCurrent(record, 2.5))
+    # df.loc[len(df)] = recordGroups
+    # print(df)
+    # Check
+    
+    for record in listOfRecords:
+        recordGroups = breakName(record)
+        recordGroups.append(peakCurrent(record,files_path, 2.8))
+        df.loc[len(df)] = recordGroups
+    print(df)
+
 # This function goal is to take the name of a given file and break it into meaningful variables
 def breakName(fileName):
     splits = fileName.split('_')
@@ -35,22 +51,6 @@ def filter_strings_by_extension(base_path):
     filtered_list = [s for s in string_list if s.endswith('.abf')]
     return filtered_list
 
-def createRecordDF(files_path):
-    listOfRecords = filter_strings_by_extension(filesPath) # List all the files in a given DF
-    df = pd.DataFrame(columns = ['Record ID', 'Protein Name', 'Dose', 'Holding potential', 'Date', 'Response (pA)'])
-    # record = listOfRecords[0]
-    # recordGroups = breakName(record)
-    # recordGroups.append(peakCurrent(record, 2.5))
-    # df.loc[len(df)] = recordGroups
-    # print(df)
-    # Check
-    
-    for record in listOfRecords:
-        recordGroups = breakName(record)
-        recordGroups.append(peakCurrent(record, 2.8))
-        df.loc[len(df)] = recordGroups
-    print(df)
-
 def butter_lowpass(cutoff, fs, order=5):
     nyq = 0.5 * fs
     normal_cutoff = cutoff / nyq
@@ -63,8 +63,8 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
     return y
 
 # Extract peak current from .abf file
-def peakCurrent(filePath, timeOfPicosprizer):
-    abf = pyabf.ABF(f'patch_clamp_analysis\\test_files\\{filePath}')
+def peakCurrent(fileName, filePath, timeOfPicosprizer):
+    abf = pyabf.ABF(f'{filePath}\\{fileName}')
     abf.setSweep(0)
     sweep = abf.sweepY
     sweep_filtered = butter_lowpass_filter(sweep, 30, 10000, 5)
@@ -80,20 +80,32 @@ def peakCurrent(filePath, timeOfPicosprizer):
     startIndex = max(0, locOfPeakCurrent[0][0] - windowSize)
     endIndex = min(len(responseVector), locOfPeakCurrent[0][0] + windowSize + 1)
     averageOfResponse = np.average(responseVector[startIndex:endIndex])
-    print(averageOfResponse)
     peakCurrent = np.subtract(averageOfResponse, ref_val)
-    plt.plot(sweep_filtered)
-    plt.plot(responseVector)
-    plt.plot(locOfPeakCurrent, averageOfResponse, 'go')
-    plt.show()
+    locOfPeakCurrent[0][0] += (timeOfPicosprizer)*10000
+    plotTrace(sweep, sweep_filtered, locOfPeakCurrent[0][0], averageOfResponse, fileName)
     return peakCurrent
 
+def plotTrace(sweep, sweep_filtered, locOfPeakCurrent, averageOfResponse, fileName):
+    # Plot raw trace
+    plt.plot(sweep)
+    # Plot filtered trace
+    plt.plot(sweep_filtered)
+    # Plot the location of peak current
+    plt.plot(locOfPeakCurrent, averageOfResponse, 'go')
+    # Get information about the file
+    recordData = breakName(fileName)
+    plt.title(f'{recordData}')
+    plt.ylabel('I(pA)')
+    plt.xlabel('Time(traces)')
+    plt.show()
 
 
 ### Main code
 # Set the path of files to be analysed
 filesPath = 'C:\\Users\\zivbe\\Documents\\codes\\parnas_codes\\patch_clamp_analysis\\test_files'
-# List the files names of a given directory
+# Set where to save the results data and graphs
+resultsPath = ''
+# Perform analysis to the files within this folder
 createRecordDF(filesPath)
 
 
