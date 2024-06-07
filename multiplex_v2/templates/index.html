@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chamber Status</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Select an Option</h1>
+        <form action="{{ url_for('index') }}" method="post">
+            <label for="experiment_option">Choose an option:</label>
+            <select name="experiment_option" id="experiment_option">
+                {% for option in options %}
+                    <option value="{{ option }}">{{ option }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Start Experiment</button>
+        </form>
+        <div class="toolbar">
+            <button onclick="shockLeft()">Shock Left</button>
+            <button onclick="removeShockLeft()">Remove Shock Left</button>
+            <button onclick="shockRight()">Shock Right</button>
+            <button onclick="removeShockRight()">Remove Shock Right</button>
+        </div>
+        <div class="odor-toolbar">
+            <button onclick="activateAirflow()">Activate Airflow</button>
+            <button onclick="disableAirflow()">Disable Airflow</button>
+            <button onclick="activateOdorLeft()">Activate Odor to Left Side</button>
+            <button onclick="activateOdorRight()">Activate Odor to Right Side</button>
+            <button onclick="disableOdorLeft()">Disable Odor to Left Side</button>
+            <button onclick="disableOdorRight()">Disable Odor to Right Side</button>
+        </div>
+        <div class="widget">
+            <h2>Live Camera Feed</h2>
+            <div class="camera-feed">
+                <!-- Placeholder for the camera feed (to be replaced with actual feed) -->
+                <div style="width: 100%; height: 400px; background-color: #ddd; border-radius: 5px; text-align: center;">
+                    Camera Feed
+                </div>
+            </div>
+        </div>
+        <div class="chamber-box">
+            <h1>Chamber Status</h1>
+            <div class="column-data">
+                <h2>Column A Odor Status</h2>
+                <ul>
+                    {% for col in odor_columns %}
+                        <li>
+                            <strong>Odor Column </strong> {{ col.column_id }}<br>
+                            <strong>Air flow:</strong>
+                            <div class="shock-box {% if col.airFlow %}green{% else %}red{% endif %}"></div>
+                            <br>
+                            <strong>Left Odor:</strong>
+                            <div class="shock-box {% if col.leftOdor %}green{% else %}red{% endif %}"></div>
+                            <br>
+                            <strong>Right Odor:</strong>
+                            <div class="shock-box {% if col.rightOdor %}green{% else %}red{% endif %}"></div>
+                            <br>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="column-data">
+                <h2>Column B Odor Status</h2>
+            </div>            
+            <div class="column">
+                <h2>Column A</h2>
+                <ul>
+                    {% for chamber in chambers %}
+                        {% if chamber.chamber_id <= 10 %}
+                            <li>
+                                <strong>Chamber ID:</strong> {{ chamber.chamber_id }}<br>
+                                <strong>Left Shock:</strong>
+                                <div class="shock-box {% if chamber.leftShock %}green{% else %}red{% endif %}"></div>
+                                <br>
+                                <strong>Right Shock:</strong>
+                                <div class="shock-box {% if chamber.rightShock %}green{% else %}red{% endif %}"></div>
+                                <br>
+                                <strong>Current Fly Loc:</strong> {{ chamber.currentFlyLoc }}
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="column">
+                <h2>Column B</h2>
+                <ul>
+                    {% for chamber in chambers %}
+                        {% if chamber.chamber_id > 10 %}
+                            <li>
+                                <strong>Chamber ID:</strong> {{ chamber.chamber_id }}<br>
+                                <strong>Left Shock:</strong>
+                                <div class="shock-box {% if chamber.leftShock %}green{% else %}red{% endif %}"></div>
+                                <br>
+                                <strong>Right Shock:</strong>
+                                <div class="shock-box {% if chamber.rightShock %}green{% else %}red{% endif %}"></div>
+                                <br>
+                                <strong>Current Fly Loc:</strong> {{ chamber.currentFlyLoc }}
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script>
+        function shockLeft() {
+            window.location.href = "/shock_left";
+        }
+
+        function removeShockLeft() {
+            window.location.href = "/remove_shock_left";
+        }
+
+        function shockRight() {
+            window.location.href = "/shock_right";
+        }
+
+        function removeShockRight() {
+            window.location.href = "/remove_shock_right";
+        }
+
+        function activateOdorLeft() {
+            window.location.href = "/activate_odor_left";
+        }
+
+        function activateOdorRight() {
+            window.location.href = "/activate_odor_right";
+        }
+
+        function disableOdorLeft() {
+            window.location.href = "/disable_odor_left";
+        }
+
+        function disableOdorRight() {
+            window.location.href = "/disable_odor_right";
+        }
+
+        function activateAirflow() {
+            window.location.href = "/activate_air_flow";
+        }
+
+        function disableAirflow() {
+            window.location.href = "/disable_air_flow";
+        }
+    </script>
+</body>
+</html>
