@@ -1,5 +1,24 @@
-from flask import Flask, render_template, redirect, url_for, request  # Ensure `request` is imported
+import sys
+import os
+# Add the parent directory of 'protocols' to sys.path
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+from protocols.ziv_protocols import *
+from flask import Flask, render_template, redirect, url_for, request, jsonify
 from classes import Chamber, OdorColumn
+from functions import *
+
+
+import inspect
+
+
+
+# Function to get the list of Python files in the 'protocols' subfolder
+def get_protocol_files():
+    protocols_dir = os.path.join(os.path.dirname(__file__), 'protocols')
+    return [f for f in os.listdir(protocols_dir) if f.endswith('.py')]
+
+# Update options to hold the names of the files in the 'protocols' subfolder
+options = get_protocol_files()
 
 app = Flask(__name__)
 
@@ -11,21 +30,36 @@ for id in range(1, 21):
 OdorColumn('A')
 OdorColumn('B')
 
-options = ['classical_ziv', 'classical_eyal', 'operant_ziv', 'operant_dekel']
-
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    if request.method == 'POST':
-        selected_option = request.form['experiment_option']
-        return redirect(url_for('experiment_start', arg1=selected_option))
     return render_template('index.html', chambers=Chamber._instances, odor_columns=OdorColumn._instances, options=options)
 
-@app.route('/experiment_start/<arg1>')
-def experiment_start(arg1):
-    # Call your experimentStart function here
-    print('hello world')
-    # experimentStart(arg1)
-    return f"Experiment started with argument: {arg1}"
+@app.route('/get_functions', methods=['POST'])
+def get_functions():
+    selected_option = request.json['selected_option']
+    module_name, _ = os.path.splitext(selected_option)  # Remove the .py extension
+    module = __import__(f'protocols.{module_name}', fromlist=[None])
+    functions = [func for func, obj in inspect.getmembers(module, inspect.isfunction) if obj.__module__ == module.__name__]
+    return jsonify(functions=functions)
+
+@app.route('/start_experiment', methods=['POST'])
+def start_experiment():
+    selected_option = request.json['experiment_option']
+    function_name = request.json['function_name']
+    module_name, _ = os.path.splitext(selected_option)  # Remove the .py extension
+    # Import and execute the selected protocol
+    module = __import__(f'protocols.{module_name}', fromlist=[None])
+    if hasattr(module, function_name):
+        func = getattr(module, function_name)
+        func()
+    print(f'Experiment {selected_option} has started with function {function_name}')
+    return jsonify(message=f'Experiment {selected_option} with function {function_name} has started and completed')
+
+@app.route('/get_chamber_states', methods=['GET'])
+def get_chamber_states():
+    chambers_data = [{'id': chamber.chamber_id, 'leftShock': chamber.leftShock, 'rightShock': chamber.rightShock, 'currentFlyLoc': chamber.currentFlyLoc} for chamber in Chamber._instances]
+    odor_columns_data = [{'id': odor_column.column_id, 'leftOdor': odor_column.leftOdor, 'rightOdor': odor_column.rightOdor, 'airFlow': odor_column.airFlow} for odor_column in OdorColumn._instances]
+    return jsonify(chambers=chambers_data, odor_columns=odor_columns_data)
 
 @app.route('/shock_left')
 def shock_left():

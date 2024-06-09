@@ -1,20 +1,37 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Roboto', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+}
+
+.camera-container {
+    flex: 0 0 30%;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-right: 20px;
 }
 
 .container {
+    flex: 1;
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 20px;
-    max-width: 1200px;
-    margin: 20px auto;
     padding: 20px;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    max-width: 1200px;
     background-color: #fff;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .header {
@@ -23,25 +40,27 @@ body {
     gap: 10px;
 }
 
-.toolbar {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 10px;
+.toolbar, .odor-toolbar, .camera-toolbar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px; /* Adjust the gap between buttons as needed */
     margin-bottom: 20px;
 }
 
 button {
-    background-color: #007bff;
+    background-color: #36597a;
     color: #fff;
     border: none;
-    padding: 8px 16px;
+    padding: 10px;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 0.9rem;
     transition: background-color 0.3s;
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: #518bc2;
 }
 
 .main-content {
@@ -52,25 +71,39 @@ button:hover {
 
 .widget {
     padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .camera-feed {
     width: 100%;
-    height: 200px; /* Adjust height as needed */
-    background-color: #ddd; /* Placeholder color for camera feed */
+    height: 400px; /* Adjust height as needed */
+    background-color: #eee; /* Placeholder color for camera feed */
     border-radius: 5px;
     text-align: center;
+    color: #666;
+    font-size: 1rem;
+    line-height: 400px;
+}
+
+.experiment-box {
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px; /* Adjust the gap between buttons as needed */
+    margin-bottom: 20px;
 }
 
 .chamber-box {
     padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .column-data, .column {
@@ -84,24 +117,64 @@ ul {
 
 li {
     padding: 10px;
-    background-color: #fff;
+    background-color: #f9f9f9;
     border-radius: 5px;
     margin-bottom: 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-size: 0.9rem;
 }
 
 .shock-box {
     display: inline-block;
-    width: 20px;
-    height: 20px;
+    width: 15px;
+    height: 15px;
     margin-right: 5px;
-    border-radius: 5px;
+    border-radius: 3px;
 }
 
 .shock-box.green {
-    background-color: #28a745;
+    background-color: #4CAF50;
 }
 
 .shock-box.red {
-    background-color: #dc3545;
+    background-color: #F44336;
+}
+
+.column-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.column-table th, .column-table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+.column-table th {
+    background-color: #36597a;
+    color: white;
+    font-size: 1rem;
+}
+
+.column-table td {
+    background-color: #f9f9f9;
+}
+
+.form-container {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.select-box {
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    transition: border-color 0.3s;
+}
+
+.select-box:focus {
+    border-color: #4CAF50;
 }
