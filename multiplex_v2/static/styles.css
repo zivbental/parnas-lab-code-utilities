@@ -13,6 +13,7 @@ body {
     padding: 20px;
 }
 
+
 .camera-container {
     flex: 0 0 30%;
     padding: 20px;
@@ -40,11 +41,31 @@ body {
     gap: 10px;
 }
 
+.header-container {
+    width: 100%;
+    background-color: #f0f0f0;
+    padding: 10px 0;
+    text-align: center;
+}
+
+.header-title h1 {
+    margin: 0;
+    font-size: 2rem;
+    text-align: center;
+}
+
+.header-title img {
+    display: block;
+    margin: 0 auto;
+    width: 250px; /* Adjust width as needed */
+    height: auto; /* Maintain aspect ratio */
+}
+
 .toolbar, .odor-toolbar, .camera-toolbar {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 10px; /* Adjust the gap between buttons as needed */
+    gap: 20px; /* Adjust the gap between buttons as needed */
     margin-bottom: 20px;
 }
 
@@ -52,7 +73,7 @@ button {
     background-color: #36597a;
     color: #fff;
     border: none;
-    padding: 10px;
+    padding: 20px;
     border-radius: 5px;
     cursor: pointer;
     font-size: 0.9rem;
