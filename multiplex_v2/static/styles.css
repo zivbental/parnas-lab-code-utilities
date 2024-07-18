@@ -13,6 +13,13 @@ body {
     padding: 20px;
 }
 
+.video-container {
+    position: relative;
+    width: 800px;
+    height: 450px;
+    overflow: hidden;
+    border: 2px solid #4CAF50;
+}
 
 .camera-container {
     flex: 0 0 30%;
@@ -108,7 +115,7 @@ button:hover {
     line-height: 400px;
 }
 
-.experiment-box {
+.experiment-box{
     padding: 20px;
     background-color: #fff;
     border-radius: 10px;
@@ -120,12 +127,66 @@ button:hover {
     margin-bottom: 20px;
 }
 
+
+.directory-box {
+    padding: 20px; /* Top, Right, Bottom, Left */
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px; /* Adjust the gap between elements as needed */
+    margin-bottom: 20px;
+}
+
+.directory-box h1 {
+    margin: 0;
+}
+
+.directory-box .form-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px; /* Adjust the gap between elements as needed */
+}
+
+.directory-box .form-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px; /* Adjust the gap between label and input */
+}
+
+.directory-box .select-box:focus {
+    border-color: #4CAF50;
+}
+
+
 .chamber-box {
     padding: 20px;
     background-color: #fff;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+.odor-status-box {
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.odor-columns {
+    display: flex;
+    justify-content: space-between;
+}
+
+.odor-item {
+    flex: 1;
+    margin: 0 10px;
+}
+
 
 .column-data, .column {
     margin-bottom: 20px;
@@ -188,6 +249,11 @@ li {
     align-items: center;
 }
 
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
 .select-box {
     padding: 10px;
     font-size: 1rem;
@@ -198,4 +264,42 @@ li {
 
 .select-box:focus {
     border-color: #4CAF50;
+}
+
+#video-feed {
+    position: relative;
+    width: 800px;
+    height: 450px;
+    border: 2px solid #4CAF50;
+}
+.rectangle {
+    position: absolute;
+    border: 2px solid #FF0000;
+    background-color: rgba(255, 0, 0, 0.3);
+    cursor: move;
+    box-sizing: border-box;
+}
+.hidden-rectangle {
+    display: none;
+}
+.resize-handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #FFFFFF;
+    border: 1px solid #000000;
+    cursor: nwse-resize;
+    right: -5px;
+    bottom: -5px;
+    box-sizing: border-box;
+}
+.fly-marker {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #00FF00;
+    border: 2px solid #FF0000;
+}
+.hidden-fly-marker {
+    display: none;
 }

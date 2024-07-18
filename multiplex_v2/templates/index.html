@@ -7,6 +7,31 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+    <style>
+        /* Additional CSS for the popup window */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+        }
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+    </style>
 </head>
 <body>
     <header class="header-title">
@@ -16,37 +41,63 @@
     <div class="wrapper">
         <div class="camera-container">
             <h2>Live Camera Feed</h2>
-            <div class="camera-feed">
-                <!-- Placeholder for the camera feed (to be replaced with actual feed) -->
-                Camera Feed
+            <div class="video-container">
+                <div id="video-feed">
+                    <img src="{{ url_for('video_feed') }}" width="800" height="450" onerror="handleVideoError()">
+                    {% for idx in range(rectangles | length) %}
+                    {% set rect = rectangles[idx] %}
+                    <div class="rectangle" id="rect-{{ idx }}" style="left: {{ rect[0] }}px; top: {{ rect[1] }}px; width: {{ rect[2] }}px; height: {{ rect[3] }}px;" onmousedown="startDrag(event, {{ idx }})">
+                        <div class="resize-handle" onmousedown="startResize(event, {{ idx }})"></div>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
             <br>
             <div class="camera-toolbar">
-                <button onclick="">Activate Camera</button>
-                <button onclick="">Reset Camera</button>
-                <button onclick="">Disable Camera</button>
+                <button class="button" onclick="toggleFlyDetection()">Toggle Fly Detection</button>
+                <button class="button" onclick="toggleRectangles()">Toggle Rectangles</button>
+                <button class="button" onclick="showManualControl()">Manual Control</button>
             </div>
-            <div class="column-data">
-                <h2>Column A Odor Status</h2>
-                <ul>
-                    {% for col in odor_columns %}
-                        <li id="odor-{{ col.column_id }}">
-                            <strong>Odor Column </strong> {{ col.column_id }}<br>
-                            <strong>Air flow:</strong>
-                            <div class="shock-box air-flow-box {% if col.airFlow %}green{% else %}red{% endif %}"></div>
-                            <br>
-                            <strong>Left Odor:</strong>
-                            <div class="shock-box left-odor-box {% if col.leftOdor %}green{% else %}red{% endif %}"></div>
-                            <br>
-                            <strong>Right Odor:</strong>
-                            <div class="shock-box right-odor-box {% if col.rightOdor %}green{% else %}red{% endif %}"></div>
-                            <br>
-                        </li>
-                    {% endfor %}
-                </ul>
+            <div class="odor-status-box">
+                <h1>Odor Status</h1>
+                <div class="form-container">
+                    <div class="odor-columns">
+                        {% for col in odor_columns %}
+                        <div class="odor-item">
+                            <ul>
+                                <li id="odor-{{ col.column_id }}">
+                                    <strong>Odor Column </strong> {{ col.column_id }}<br>
+                                    <strong>Air flow:</strong>
+                                    <div class="shock-box air-flow-box {% if col.airFlow %}green{% else %}red{% endif %}"></div>
+                                    <br>
+                                    <strong>Left Odor:</strong>
+                                    <div class="shock-box left-odor-box {% if col.leftOdor %}green{% else %}red{% endif %}"></div>
+                                    <br>
+                                    <strong>Right Odor:</strong>
+                                    <div class="shock-box right-odor-box {% if col.rightOdor %}green{% else %}red{% endif %}"></div>
+                                    <br>
+                                </li>
+                            </ul>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
         </div>
         <div class="container">
+            <div class="directory-box">
+                <h1>Select a Directory</h1>
+                <div class="form-container">
+                    <div class="form-group">
+                        <label for="directory_option">Choose a directory:</label>
+                        <input type="file" id="directory_option" name="directory_option" webkitdirectory directory class="select-box">
+                    </div>
+                    <div class="form-group">
+                        <label for="save_video">Save Video:</label>
+                        <input type="checkbox" id="save_video" name="save_video" class="select-box">
+                    </div>
+                </div>
+            </div>                                                            
             <div class="experiment-box">
                 <h1>Select an Experiment</h1>
                 <div class="form-container">
@@ -72,21 +123,6 @@
             </div>
             <div class="chamber-box">
                 <h1>Chamber Status</h1>
-                <div class="toolbar">
-                    <button onclick="shockLeft()">Shock Left</button>
-                    <button onclick="removeShockLeft()">Remove Shock Left</button>
-                    <button onclick="shockRight()">Shock Right</button>
-                    <button onclick="removeShockRight()">Remove Shock Right</button>
-                </div>
-                <div class="odor-toolbar">
-                    <button onclick="activateAirflow()">Activate Airflow</button>
-                    <button onclick="disableAirflow()">Disable Airflow</button>
-                    <button onclick="activateOdorLeft()">Activate Odor to Left Side</button>
-                    <button onclick="activateOdorRight()">Activate Odor to Right Side"></button>
-                    <button onclick="disableOdorLeft()">Disable Odor to Left Side"></button>
-                    <button onclick="disableOdorRight()">Disable Odor to Right Side"></button>
-                </div>
-                <br>
                 <table class="column-table">
                     <thead>
                         <tr>
@@ -109,7 +145,7 @@
                                             <strong>Right Shock:</strong>
                                             <div class="shock-box right-shock-box {% if chamber.rightShock %}green{% else %}red{% endif %}"></div>
                                             <br>
-                                            <strong>Current Fly Loc:</strong> {{ chamber.currentFlyLoc }}
+                                            <strong>Current Fly Loc:</strong> <span class="current-fly-loc">{{ chamber.currentFlyLoc }}</span>
                                         </td>
                                     {% else %}
                                         <td class="chamber-cell"></td>
@@ -127,7 +163,7 @@
                                             <strong>Right Shock:</strong>
                                             <div class="shock-box right-shock-box {% if chamber.rightShock %}green{% else %}red{% endif %}"></div>
                                             <br>
-                                            <strong>Current Fly Loc:</strong> {{ chamber.currentFlyLoc }}
+                                            <strong>Current Fly Loc:</strong> <span class="current-fly-loc">{{ chamber.currentFlyLoc }}</span>
                                         </td>
                                     {% else %}
                                         <td class="chamber-cell"></td>
@@ -140,159 +176,25 @@
             </div>
         </div>
     </div>
-    <script>
-        $(document).ready(function() {
-            $('#experiment_option').change(function() {
-                var selectedOption = $(this).val();
-                if (selectedOption) {
-                    $.ajax({
-                        url: '/get_functions',
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({selected_option: selectedOption}),
-                        success: function(response) {
-                            var functionDropdown = $('#function_option');
-                            functionDropdown.empty();
-                            $.each(response.functions, function(index, functionName) {
-                                functionDropdown.append($('<option>', {
-                                    value: functionName,
-                                    text: functionName
-                                }));
-                            });
-                        },
-                        error: function(xhr, status, error) {
-                            console.error("An error occurred: " + xhr.responseText);
-                        }
-                    });
-                } else {
-                    $('#function_option').empty().append('<option value="">Select a file first</option>');
-                }
-            });
-
-            $('#startExperiment').click(function() {
-                var selectedOption = $('#experiment_option').val();
-                var selectedFunction = $('#function_option').val();
-                $.ajax({
-                    url: '/start_experiment',
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({experiment_option: selectedOption, function_name: selectedFunction}),
-                    success: function(response) {
-                        $('#message').text(response.message);
-                    },
-                    error: function(xhr, status, error) {
-                        $('#message').text("An error occurred: " + xhr.responseText);
-                    }
-                });
-            });
-
-            $('#stopExperiment').click(function() {
-                $.ajax({
-                    url: '/stop_experiment',
-                    type: 'POST',
-                    success: function(response) {
-                        $('#message').text(response.message);
-                    },
-                    error: function(xhr, status, error) {
-                        $('#message').text("An error occurred: " + xhr.responseText);
-                    }
-                });
-            });
-
-            function updateChamberStates() {
-                $.ajax({
-                    url: '/get_chamber_states',
-                    type: 'GET',
-                    success: function(response) {
-                        response.chambers.forEach(function(chamber) {
-                            console.log("Updating chamber:", chamber.id);
-                            var leftShockBox = $('#chamber-' + chamber.id + ' .left-shock-box');
-                            if (chamber.leftShock) {
-                                leftShockBox.removeClass('red').addClass('green');
-                            } else {
-                                leftShockBox.removeClass('green').addClass('red');
-                            }
-
-                            var rightShockBox = $('#chamber-' + chamber.id + ' .right-shock-box');
-                            if (chamber.rightShock) {
-                                rightShockBox.removeClass('red').addClass('green');
-                            } else {
-                                rightShockBox.removeClass('green').addClass('red');
-                            }
-                        });
-
-                        response.odor_columns.forEach(function(odor_column) {
-                            console.log("Updating odor column:", odor_column.id);
-                            var airFlowBox = $('#odor-' + odor_column.id + ' .air-flow-box');
-                            if (odor_column.airFlow) {
-                                airFlowBox.removeClass('red').addClass('green');
-                            } else {
-                                airFlowBox.removeClass('green').addClass('red');
-                            }
-
-                            var leftOdorBox = $('#odor-' + odor_column.id + ' .left-odor-box');
-                            if (odor_column.leftOdor) {
-                                leftOdorBox.removeClass('red').addClass('green');
-                            } else {
-                                leftOdorBox.removeClass('green').addClass('red');
-                            }
-
-                            var rightOdorBox = $('#odor-' + odor_column.id + ' .right-odor-box');
-                            if (odor_column.rightOdor) {
-                                rightOdorBox.removeClass('red').addClass('green');
-                            } else {
-                                rightOdorBox.removeClass('green').addClass('red');
-                            }
-                        });
-                    },
-                    error: function(xhr, status, error) {
-                        console.error("An error occurred while fetching chamber states: " + xhr.responseText);
-                    }
-                });
-            }
-
-            setInterval(updateChamberStates, 1000); // Poll every 1 second
-        });
-
-        function shockLeft() {
-            window.location.href = "/shock_left";
-        }
-
-        function removeShockLeft() {
-            window.location.href = "/remove_shock_left";
-        }
-
-        function shockRight() {
-            window.location.href = "/shock_right";
-        }
-
-        function removeShockRight() {
-            window.location.href = "/remove_shock_right";
-        }
-
-        function activateOdorLeft() {
-            window.location.href = "/activate_odor_left";
-        }
-
-        function activateOdorRight() {
-            window.location.href = "/activate_odor_right";
-        }
-
-        function disableOdorLeft() {
-            window.location.href = "/disable_odor_left";
-        }
-
-        function disableOdorRight() {
-            window.location.href = "/disable_odor_right";
-        }
-
-        function activateAirflow() {
-            window.location.href = "/activate_air_flow";
-        }
-
-        function disableAirflow() {
-            window.location.href = "/disable_air_flow";
-        }
-    </script>
+    <div class="popup-overlay"></div>
+    <div class="popup">
+        <h2>Manual Control</h2>
+        <div class="toolbar">
+            <button onclick="shockLeft()">Shock Left</button>
+            <button onclick="removeShockLeft()">Remove Shock Left</button>
+            <button onclick="shockRight()">Shock Right</button>
+            <button onclick="removeShockRight()">Remove Shock Right</button>
+        </div>
+        <div class="odor-toolbar">
+            <button onclick="activateAirflow()">Activate Airflow</button>
+            <button onclick="disableAirflow()">Disable Airflow</button>
+            <button onclick="activateOdorLeft()">Activate Odor to Left Side"></button>
+            <button onclick="activateOdorRight()">Activate Odor to Right Side"></button>
+            <button onclick="disableOdorLeft()">Disable Odor to Left Side"></button>
+            <button onclick="disableOdorRight()">Disable Odor to Right Side"></button>
+        </div>
+        <br>
+        <button class="button" onclick="hideManualControl()">Close</button>
+    </div>
 </body>
 </html>
