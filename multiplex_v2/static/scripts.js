@@ -133,7 +133,7 @@ $(document).ready(function() {
         updateChamberStates();
     }
 
-    setInterval(updateFlyPositions, 1000); // Poll every 1 second
+    setInterval(updateFlyPositions, 10); // Poll every 1 second
 });
 
 function shockLeft() {

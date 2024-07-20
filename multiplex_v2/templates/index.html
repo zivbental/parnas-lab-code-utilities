@@ -139,12 +139,6 @@
                                         {% set chamber = chambers[index] %}
                                         <td id="chamber-{{ chamber.chamber_id }}" class="chamber-cell">
                                             <strong>Chamber ID:</strong> {{ chamber.chamber_id }}<br>
-                                            <strong>Left Shock:</strong>
-                                            <div class="shock-box left-shock-box {% if chamber.leftShock %}green{% else %}red{% endif %}"></div>
-                                            <br>
-                                            <strong>Right Shock:</strong>
-                                            <div class="shock-box right-shock-box {% if chamber.rightShock %}green{% else %}red{% endif %}"></div>
-                                            <br>
                                             <strong>Current Fly Loc:</strong> <span class="current-fly-loc">{{ chamber.currentFlyLoc }}</span>
                                         </td>
                                     {% else %}
@@ -157,12 +151,6 @@
                                         {% set chamber = chambers[index] %}
                                         <td id="chamber-{{ chamber.chamber_id }}" class="chamber-cell">
                                             <strong>Chamber ID:</strong> {{ chamber.chamber_id }}<br>
-                                            <strong>Left Shock:</strong>
-                                            <div class="shock-box left-shock-box {% if chamber.leftShock %}green{% else %}red{% endif %}"></div>
-                                            <br>
-                                            <strong>Right Shock:</strong>
-                                            <div class="shock-box right-shock-box {% if chamber.rightShock %}green{% else %}red{% endif %}"></div>
-                                            <br>
                                             <strong>Current Fly Loc:</strong> <span class="current-fly-loc">{{ chamber.currentFlyLoc }}</span>
                                         </td>
                                     {% else %}
