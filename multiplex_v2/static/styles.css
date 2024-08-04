@@ -63,8 +63,8 @@ body {
 
 .header-title img {
     display: block;
-    margin: 0 auto;
-    width: 250px; /* Adjust width as needed */
+    padding: 50px 50px 20px 50px;
+    width: 450px; /* Adjust width as needed */
     height: auto; /* Maintain aspect ratio */
 }
 
@@ -206,6 +206,10 @@ li {
     font-size: 0.9rem;
 }
 
+.table-div {
+    width: 20%;
+}
+
 .shock-box {
     display: inline-block;
     width: 15px;
@@ -223,7 +227,7 @@ li {
 }
 
 .column-table {
-    width: 100%;
+    width: 20%;
     border-collapse: collapse;
 }
 

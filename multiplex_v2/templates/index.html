@@ -36,7 +36,6 @@
 <body>
     <header class="header-title">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Multiplex 2.0 Logo">
-        <h1>Multiplex 2.0</h1>
     </header>
     <div class="wrapper">
         <div class="camera-container">
@@ -126,41 +125,54 @@
                 <table class="column-table">
                     <thead>
                         <tr>
-                            <th colspan="3">Column A</th>
-                            <th colspan="3">Column B</th>
+                            <th>Column A</th>
+                            <th>Column B</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {% for row in range(4) %}
+                    <tbody id="chamber-tbody">
+                        {% for row in range(10) %}
                             <tr>
-                                {% for col in range(3) %}
-                                    {% set index = row * 3 + col %}
-                                    {% if index < 10 %}
-                                        {% set chamber = chambers[index] %}
-                                        <td id="chamber-{{ chamber.chamber_id }}" class="chamber-cell">
-                                            <strong>Chamber ID:</strong> {{ chamber.chamber_id }}<br>
-                                            <strong>Current Fly Loc:</strong> <span class="current-fly-loc">{{ chamber.currentFlyLoc }}</span>
-                                        </td>
-                                    {% else %}
-                                        <td class="chamber-cell"></td>
+                                <td id="chamber-{{ row }}">
+                                    {% if row < chambers|length %}
+                                        {% set chamber = chambers[row] %}
+                                        <strong>ID:</strong> {{ chamber.chamber_id }}<br>
+                                        <strong>Loc:</strong> <span class="current-fly-loc">{{ chamber.currentFlyLoc }}</span>
                                     {% endif %}
-                                {% endfor %}
-                                {% for col in range(3) %}
-                                    {% set index = 10 + row * 3 + col %}
-                                    {% if index < 20 %}
-                                        {% set chamber = chambers[index] %}
-                                        <td id="chamber-{{ chamber.chamber_id }}" class="chamber-cell">
-                                            <strong>Chamber ID:</strong> {{ chamber.chamber_id }}<br>
-                                            <strong>Current Fly Loc:</strong> <span class="current-fly-loc">{{ chamber.currentFlyLoc }}</span>
-                                        </td>
-                                    {% else %}
-                                        <td class="chamber-cell"></td>
+                                </td>
+                                <td id="chamber-{{ row + 10 }}">
+                                    {% if row + 10 < chambers|length %}
+                                        {% set chamber = chambers[row + 10] %}
+                                        <strong>ID:</strong> {{ chamber.chamber_id }}<br>
+                                        <strong>Loc:</strong> <span class="current-fly-loc">{{ chamber.currentFlyLoc }}</span>
                                     {% endif %}
-                                {% endfor %}
+                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+                <div>
+                    <h2>MFC View</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>MFC #</th>
+                                <th>Set point</th>
+                                <th>Reading value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <td>
+                                MFC 1
+                            </td>
+                            <td>
+                                0.3
+                            </td>
+                            <td>
+                                0.3
+                            </td>
+                        </tbody>
+                    </table>
+                </div>     
             </div>
         </div>
     </div>
