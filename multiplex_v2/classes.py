@@ -18,6 +18,9 @@ class Chamber:
         Chamber._used_ids.discard(self.chamber_id)
         Chamber._instances.remove(self)
 
+    def update_fly_location(self, location):
+        self.currentFlyLoc = location
+
     @classmethod
     def shockLeft(cls):
         for chamber in cls._instances:

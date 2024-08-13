@@ -1,0 +1,37 @@
+
+<div class="chamber-box">
+                <h1>Status Panel</h1>
+                <div class="table-div">
+                    <table class="column-table">
+                        <thead>
+                            <tr>
+                                <th>Column A</th>
+                                <th>Column B</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in range(10) %}
+                                <tr>
+                                    <td>
+                                        {% if row < chambers|length %}
+                                            {% set chamber = chambers[row] %}
+                                            <strong>ID:</strong> {{ chamber.chamber_id }}<br>
+                                            <strong>Loc:</strong> <span class="current-fly-loc">{{ chamber.currentFlyLoc }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if row + 10 < chambers|length %}
+                                            {% set chamber = chambers[row + 10] %}
+                                            <strong>ID:</strong> {{ chamber.chamber_id }}<br>
+                                            <strong>Loc:</strong> <span class="current-fly-loc">{{ chamber.currentFlyLoc }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div>
+                    <h2>MFC View</h2>
+                </div>                
+            </div>
