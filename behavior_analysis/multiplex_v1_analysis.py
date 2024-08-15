@@ -137,32 +137,66 @@ class MultiplexTrial:
         filtered_df = df[columns_to_keep]
         
         return filtered_df
-
-    def time_spent(self, df=None, width_size=0.2):
+    
+    @staticmethod
+    def time_spent(df, width_size=0.2, sampling_rate=0.035):
         """
-        This function will determine border values to decide which 'side' the fly is currently in.
-        Then it will calculate the time period the fly spent on this side for a given dataframe.
-        It will return a dataframe that shows for each fly the ratio of the time spent on the two sides of the chamber.
+        This function determines which 'side' the fly is currently in based on the given width_size.
+        It then calculates the time the fly spent on each side of the chamber.
+        Returns a dataframe that shows for each fly the time spent on each side.
         """
-        # Use self.processed_data if df is None
-        if df is None:
-            df = self.processed_data
-        
-            if x >= 0.2:
-                return 1
-            elif x < -0.2:
-                return -1
-            else:
-                return 0
 
-        # Apply the classification function to the entire DataFrame
-        classified_df = df.applymap(classify_value)
-        
-        return classified_df
+        # Helper function to process mask results and return transposed dataframe
+        def process_counts(counts):
+            # Reset index and transpose
+            df_transposed = counts.reset_index().T
+            # Assign the first row as column names
+            df_transposed.columns = df_transposed.iloc[0]
+            # Drop the first row (now header) and return the modified DataFrame
+            return df_transposed.drop(df_transposed.index[0])
+
+        # Create boolean masks for values greater than width_size and less than -width_size
+        mask_greater = df > width_size
+        mask_less = df < -width_size
+
+        # Calculate time spent based on sampling rate
+        count_greater = mask_greater.sum() * sampling_rate
+        count_less = mask_less.sum() * sampling_rate
+
+        # Process the counts and create dataframes
+        count_greater_processed = process_counts(count_greater)
+        count_less_processed = process_counts(count_less)
+
+        # Concatenate the processed dataframes
+        df_combined = pd.concat([count_greater_processed, count_less_processed])
+
+        # Assign index names 'right_side' and 'left_side'
+        df_combined.index = ['right_side', 'left_side']
+
+        return df_combined
 
 
     def filter_compare_to_valence(self):
-        pass
+
+        valence_df = self.time_spent(self.processed_data[0])
+        test_df = self.time_spent(self.processed_data[1])
+
+        print(valence_df)
+        print(test_df)
+
+        # Calculate initial valence (left side [MCH] - right side [3-OCT]):
+        initial_val = (valence_df.iloc[1] - valence_df.iloc[0]) / (valence_df.iloc[1] + valence_df.iloc[0])
+        end_valence = (test_df.iloc[0] - test_df.iloc[1]) / (test_df.iloc[0] + test_df.iloc[1])
+
+        print(initial_val)
+        print(end_valence)
+
+        learned_index = end_valence - initial_val
+
+        print(learned_index)
+        print(learned_index.mean())
+
+    
 
     def filter_specific_fly(self):
         pass
@@ -220,8 +254,8 @@ class MultiplexTrial:
 """
 Main segment of code that runs the functions
 """
-file_path = "/Users/zivbentulila/Library/CloudStorage/GoogleDrive-zivbental@gmail.com/My Drive/Work/MSc Neuroscience/Moshe Parnas/Experiments/Serotonergic system/5ht_behavior/operant_conditioning/raw_data/behavior/13.8.24/5ht_rnai/mb247/20240813_075645_Log.txt"
-# file_path = "G:/My Drive/Work/MSc Neuroscience/Moshe Parnas/Experiments/Serotonergic system/5ht_behavior/operant_conditioning/raw_data/behavior/13.8.24/5ht_rnai/32471/20240813_083500_Log.txt"
+# file_path = "/Users/zivbentulila/Library/CloudStorage/GoogleDrive-zivbental@gmail.com/My Drive/Work/MSc Neuroscience/Moshe Parnas/Experiments/Serotonergic system/5ht_behavior/operant_conditioning/raw_data/behavior/13.8.24/5ht_rnai/mb247/20240813_075645_Log.txt"
+file_path = "D:/My Drive/Work/MSc Neuroscience/Moshe Parnas/Experiments/Serotonergic system/5ht_behavior/operant_conditioning/raw_data/behavior/14.8.24/5ht_rnai/32471xmb247/20240813_111150_Log.txt"
 
 # Create a MultiplexTrial object
 trial_1 = MultiplexTrial()
@@ -231,9 +265,10 @@ trial_1.load_data(file_path)
 
 trial_1.filter_no_movement()
 
-trial_1.filter_by_num_choices(0.5, 0.3, 1)
+trial_1.filter_by_num_choices(0.5, 0.3, 6, filter='both')
 
-print(trial_1.time_spent())
+trial_1.filter_compare_to_valence()
+
 
 
 '''
