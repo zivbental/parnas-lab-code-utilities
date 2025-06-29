@@ -33,6 +33,8 @@ class MultiplexTrial:
         self.processed_data = None  # May be filtered during analysis
         self.processed_data_full = None  # Always holds full data for the trial
         self.filtered_flies = []  # List of fly columns that pass filtering criteria
+        self.valence_df = None
+        self.test_df = None
         self.mm_per_unit = 0.225  # mm per coordinate unit
 
     def load_data(self, data_path):
@@ -44,38 +46,33 @@ class MultiplexTrial:
         self.processed_data_full = pd.read_csv(data_path)
         self.processed_data = self.processed_data_full.copy()
 
-    def select_test_period(self):
+    def set_analysis_stages(self, initial_values: str, changed_values: str):
         """
-        Extracts rows corresponding to the 'Test' phase and returns only fly location columns.
+        Sets self.valence_df and self.test_df based on the provided stage names.
         """
-        df = self.processed_data
-        test_df = df[df['experiment_step'] == 'Test']
-        test_df = test_df.filter(regex=r'^(Timestamp|chamber_\d+_loc)$')
-        test_df.set_index('Timestamp', inplace=True)
-        return test_df
+        def extract_stage_df(stage_name):
+            df = self.processed_data
+            stage_df = df[df['experiment_step'] == stage_name]
+            stage_df = stage_df.filter(regex=r'^(Timestamp|chamber_\d+_loc)$')
+            stage_df.set_index('Timestamp', inplace=True)
+            return stage_df
 
-    def select_initial_valence_period(self):
-        """
-        Extracts rows corresponding to the 'Initial Valence' phase and returns only fly location columns.
-        """
-        df = self.processed_data
-        initial_valence_df = df[df['experiment_step'] == 'Initial Valence']
-        initial_valence_df = initial_valence_df.filter(regex=r'^(Timestamp|chamber_\d+_loc)$')
-        initial_valence_df.set_index('Timestamp', inplace=True)
-        return initial_valence_df
+        self.valence_df = extract_stage_df(initial_values)
+        self.test_df = extract_stage_df(changed_values)
+
 
     def filter_by_num_choices(self, midline_borders, threshold=1, filter='both'):
         """
-        Filters flies based on the number of times they cross the midline during 'Initial Valence' and/or 'Test'.
-        Updates self.processed_data accordingly.
+        Filters flies based on the number of times they cross the midline during selected stages.
+        Must call set_analysis_stages() before this function.
         """
-        valence_df = self.select_initial_valence_period()
-        test_df = self.select_test_period()
+        if self.valence_df is None or self.test_df is None:
+            raise ValueError("Please set analysis stages using set_analysis_stages() before filtering.")
 
         df_mapping = {
-            'both': [('valence_df', valence_df), ('test_df', test_df)],
-            'test': [('test_df', test_df)],
-            'valence': [('valence_df', valence_df)]
+            'both': [('valence_df', self.valence_df), ('test_df', self.test_df)],
+            'test': [('test_df', self.test_df)],
+            'valence': [('valence_df', self.valence_df)]
         }
 
         filtered_dfs = {}
@@ -89,6 +86,7 @@ class MultiplexTrial:
         elif filter in ['test', 'valence']:
             key = f"filtered_{filter}_df"
             self.processed_data = filtered_dfs[key][filtered_dfs[key].columns]
+
 
     def filter_by_midline(self, df, midline_borders, threshold=1):
         """
@@ -133,13 +131,13 @@ class MultiplexTrial:
 
         return df_combined
 
-    def analyse_time(self):
+    def analyse_time(self, width_size = 10):
         """
         Compares side preference during 'Initial Valence' and 'Test'.
         Filters flies based on activity and stores those passing in self.filtered_flies.
         """
-        valence_df = self.time_spent(self.processed_data[0])
-        test_df = self.time_spent(self.processed_data[1])
+        valence_df = self.time_spent(self.processed_data[0], width_size=width_size)
+        test_df = self.time_spent(self.processed_data[1], width_size=width_size)
 
         valence_denominator = valence_df.iloc[1] + valence_df.iloc[0]
         test_denominator = test_df.iloc[0] + test_df.iloc[1]
@@ -289,10 +287,6 @@ class MultiplexTrial:
         plt.close()
         return summary_df
 
-
-
-
-
     def filter_specific_fly(self):
         # Placeholder for manually selecting or excluding specific flies in the future
         pass
@@ -330,10 +324,83 @@ class MultiplexTrial:
 """
 Main segment of code that runs the functions
 """
+
+"""
+Define the location of the file that you want to analyze.
+
+The file should be a CSV file containing the fly location tracking data and 
+experiment step annotations. Make sure it includes at least the following columns:
+
+- 'Timestamp': records the time of each sample (should be in ascending order).
+- 'experiment_step': indicates the behavioral stage, e.g., "Initial Valence", "Test".
+- 'chamber_X_loc' columns: represent the position of a fly in chamber X (e.g., 'chamber_1_loc').
+"""
 file_path = "/home/ziv-lab/codes/parnas_codes/behavior_analysis/test_trial/fly_loc.csv"
 
+"""
+Create a MultiplexTrial object.
+
+This object encapsulates all data and methods related to analyzing a single behavioral trial.
+It provides functions for data loading, filtering, selecting behavioral stages, and visualizing results.
+"""
 trial_1 = MultiplexTrial()
+
+"""
+Load the data of a specific trial from the CSV file.
+
+This reads the file and stores the full dataset in memory, making it available for 
+stage selection and analysis functions.
+"""
 trial_1.load_data(file_path)
+
+"""
+Define which two experimental stages to compare in your analysis.
+
+This replaces hardcoded stage selection and allows dynamic comparison of any two stages.
+Arguments:
+- initial_values: the baseline stage (e.g., "Initial Valence").
+- changed_values: the post-manipulation stage (e.g., "Test").
+
+These must match the 'experiment_step' values in your CSV file exactly.
+"""
+trial_1.set_analysis_stages(initial_values="Initial Valence", changed_values="Test")
+
+"""
+Filter flies based on their activity (crossing the midline) during the selected stages.
+
+Arguments:
+- midline_borders: defines the central boundary of the chamber. A crossing is counted
+  when a fly moves from one side of this boundary to the other (positive to negative or vice versa).
+- threshold: the minimum number of crossings required to include a fly in the analysis.
+- filter:
+    - 'both': apply the threshold to both stages.
+    - 'valence': apply the threshold only to the initial stage.
+    - 'test': apply the threshold only to the changed stage.
+
+Only flies meeting the activity criteria are retained for further analysis.
+"""
 trial_1.filter_by_num_choices(midline_borders=0.6, threshold=4, filter='both')
-trial_1.analyse_time()
+
+"""
+Analyze behavior change between the selected stages.
+
+This calculates how much time each fly spent on the left vs. right side of the chamber
+during both stages. It then computes a 'learned index', which is the change in side preference
+(in percent) from the initial to the changed stage.
+
+Only flies that passed the filtering step are included in this computation.
+"""
+trial_1.analyse_time(width_size=10)
+
+"""
+Calculate and plot average fly speed during all experiment stages.
+
+This function:
+- Splits the trial into stages and rest periods based on 'experiment_step' labels.
+- Calculates instantaneous speed for each fly (in mm/s), using position changes over time.
+- Summarizes the mean and SEM (standard error of the mean) speed per stage.
+- Plots a bar graph of the speed summary and saves it to the same folder as the CSV file.
+
+You can customize the sampling rate (in seconds) by passing `sampling_rate=X` as an argument.
+"""
 trial_1.analyze_and_plot_speed()
