@@ -233,7 +233,7 @@ class MultiplexTrial:
     def analyze_and_plot_speed(self, *, sampling_rate: float = 0.1) -> pd.DataFrame:
         """
         High-level wrapper – computes & plots average speed per stage.
-        Saves the figure in the same folder as the raw input file.
+        Also saves per-fly speed data and the summary bar plot to disk.
         """
         import seaborn as sns
         import os
@@ -245,7 +245,7 @@ class MultiplexTrial:
             for stage, df in stage_pos.items()
         }
 
-        # 2. Summary statistics
+        # 2. Summary statistics for plotting
         summary = {
             stage: self.summarize_speed(df)
             for stage, df in stage_speed.items()
@@ -254,11 +254,17 @@ class MultiplexTrial:
         summary_df = pd.DataFrame(summary).T.reset_index()
         summary_df.columns = ["Stage", "Mean Speed", "SEM"]
 
-        # 3. Plot using seaborn style with a single consistent color
+        # 3. Also export the individual fly means per stage
+        fly_speed_df = pd.DataFrame({
+            stage: df.mean()  # mean per fly per stage
+            for stage, df in stage_speed.items()
+        })
+
+        # 4. Plot the summary
         plt.figure(figsize=(10, 5))
         sns.set(style="whitegrid")
 
-        bar_color = sns.color_palette("muted")[0]  # Same color for all bars
+        bar_color = sns.color_palette("muted")[0]
 
         plt.bar(
             summary_df["Stage"],
@@ -275,14 +281,29 @@ class MultiplexTrial:
         plt.xticks(rotation=45)
         plt.tight_layout()
 
-        # 4. Save to folder containing the raw CSV
+        # 5. Save figure and raw data
         if hasattr(self, 'data_path'):
             folder_path = os.path.dirname(self.data_path)
-            output_path = os.path.join(folder_path, "speed_summary.png")
-            plt.savefig(output_path, dpi=300)
-            print(f"Figure saved to: {output_path}")
+
+            # Save plot
+            fig_path = os.path.join(folder_path, "speed_summary.png")
+            plt.savefig(fig_path, dpi=300)
+            print(f"Figure saved to: {fig_path}")
+
+            # Save data to Excel
+            # Save data to CSV
+            fly_speed_csv_path = os.path.join(folder_path, "fly_speeds_by_fly.csv")
+            summary_csv_path = os.path.join(folder_path, "fly_speed_summary.csv")
+
+            fly_speed_df.to_csv(fly_speed_csv_path)
+            summary_df.to_csv(summary_csv_path, index=False)
+
+            print(f"Fly speed data saved to: {fly_speed_csv_path}")
+            print(f"Summary speed data saved to: {summary_csv_path}")
+
+
         else:
-            print("Warning: data_path not set. Figure not saved.")
+            print("Warning: data_path not set. Outputs not saved.")
 
         plt.close()
         return summary_df
