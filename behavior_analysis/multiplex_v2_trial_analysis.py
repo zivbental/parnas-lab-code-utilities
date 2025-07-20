@@ -131,14 +131,21 @@ class MultiplexTrial:
 
         return df_combined
 
-    def analyse_time(self, width_size = 10):
+    def analyse_time(self, width_size=10):
         """
-        Compares side preference during 'Initial Valence' and 'Test'.
+        Compares side preference during two selected stages (defined earlier via set_analysis_stages),
+        and saves results to CSV files in the same folder as the raw data.
+
+        The learned index is calculated as the change in side preference (in %) between the two stages.
         Filters flies based on activity and stores those passing in self.filtered_flies.
         """
+        import os
+
+        # Step 1: Calculate time spent on each side (left and right)
         valence_df = self.time_spent(self.processed_data[0], width_size=width_size)
         test_df = self.time_spent(self.processed_data[1], width_size=width_size)
 
+        # Step 2: Filter out flies with no time recorded in either phase
         valence_denominator = valence_df.iloc[1] + valence_df.iloc[0]
         test_denominator = test_df.iloc[0] + test_df.iloc[1]
 
@@ -146,23 +153,46 @@ class MultiplexTrial:
         filtered_valence_df = valence_df.loc[:, combined_mask]
         filtered_test_df = test_df.loc[:, combined_mask]
 
+        # Step 3: Require flies to be active for at least 30s during the initial stage
         initial_val_filter = filtered_valence_df.iloc[1] >= 30
         filtered_valence_df = filtered_valence_df.loc[:, initial_val_filter]
         filtered_test_df = filtered_test_df.loc[:, initial_val_filter]
 
+        # Step 4: Calculate preferences and learned index
         initial_val = (filtered_valence_df.iloc[1]) / (filtered_valence_df.iloc[0] + filtered_valence_df.iloc[1])
         end_valence = (filtered_test_df.iloc[0]) / (filtered_test_df.iloc[0] + filtered_test_df.iloc[1])
         learned_index = (end_valence - initial_val) * 100
 
+        # Step 5: Store fly IDs
         self.filtered_flies = learned_index.index.to_list()
 
-        print("Time before")
-        print(initial_val * 100)
-        print("Time After")
-        print(end_valence * 100)
-        print("Learned Index")
-        print(learned_index)
-        print(learned_index.mean())
+        # Step 6: Create results DataFrame
+        results_df = pd.DataFrame({
+            'Fly ID': learned_index.index,
+            'Initial Preference (left)': initial_val.values * 100,
+            'Final Preference (right)': end_valence.values * 100,
+            'Learned Index (%)': learned_index.values
+        })
+
+        mean_index_df = pd.DataFrame({
+            'Metric': ['Mean Learned Index'],
+            'Value': [learned_index.mean()]
+        })
+
+        # Step 7: Save to CSV if data_path is defined
+        if hasattr(self, 'data_path'):
+            folder_path = os.path.dirname(self.data_path)
+            results_path = os.path.join(folder_path, "learned_index_by_fly.csv")
+            mean_path = os.path.join(folder_path, "learned_index_summary.csv")
+
+            results_df.to_csv(results_path, index=False)
+            mean_index_df.to_csv(mean_path, index=False)
+
+            print(f"Learned index data saved to:\n- {results_path}\n- {mean_path}")
+        else:
+            print("Warning: data_path not set. Results not saved.")
+
+        
 
     def split_by_stage(self) -> dict[str, pd.DataFrame]:
         """
