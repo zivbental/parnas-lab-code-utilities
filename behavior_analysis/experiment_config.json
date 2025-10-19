@@ -1,0 +1,25 @@
+{
+  "description": "Configuration file for multiplex batch analysis - 5ht1a experiment",
+  "groups": {
+    "control": ["w1118xok107"],
+    "experimental": ["w1118x33885", "w1118xmb504"]
+  },
+  "comparisons": [
+    {
+      "experimental": "w1118x33885",
+      "controls": ["w1118xok107"],
+      "description": "w1118x33885 vs w1118xok107"
+    },
+    {
+      "experimental": "w1118xmb504", 
+      "controls": ["w1118xok107"],
+      "description": "w1118xmb504 vs w1118xok107"
+    }
+  ],
+  "analysis_settings": {
+    "midline_borders": 0.6,
+    "threshold": 4,
+    "multiple_testing_correction": "bonferroni",
+    "significance_level": 0.05
+  }
+}
