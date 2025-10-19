@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="[https://imgur.com/Jf0I0JY](https://i.imgur.com/Jf0I0JY.png)" alt="Parnas Lab Code Utilities logo showing a Drosophila coding" width="600"/>
+  <img src="https://i.imgur.com/Jf0I0JY.png" alt="Parnas Lab Code Utilities logo showing a Drosophila coding" width="600"/>
 </p>
 
 # Parnas Lab Code Utilities
